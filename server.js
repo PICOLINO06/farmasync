@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path'); // <-- NOVO: Para servir arquivos
 const multer = require('multer');
-const csv = require('csv-parser');
+const csv = require('csv-parse');
 const fs = require('fs');
 
 // <-- MUDANÇA: Usa variáveis de ambiente para produção
@@ -477,5 +477,6 @@ app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 
 });
+
 
 
