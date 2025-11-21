@@ -1,0 +1,369 @@
+/* style.css */
+
+/* Reseta básico e define a fonte para todo o projeto */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f0f2f5; /* Um cinza claro para o fundo */
+  margin: 0;
+  padding: 0;
+}
+
+/* --- ESTILOS DA PÁGINA DE LOGIN --- */
+
+.login-page {
+  /* Isso centraliza a caixa de login na tela */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* 100% da altura da tela */
+  width: 100vw; /* 100% da largura da tela */
+}
+
+.form-container {
+  background-color: #ffffff;
+  padding: 2.5rem; /* Espaçamento interno */
+  border-radius: 8px; /* Bordas arredondadas */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  border: 1px solid #ddd;
+  width: 100%;
+  max-width: 400px; /* Largura máxima da caixa */
+  text-align: center;
+}
+
+.form-container h2 {
+  color: #0056b3; /* Azul do seu print */
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.form-container .subtitle {
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+/* Estilo dos grupos de input (label + campo) */
+.input-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Garante que o padding não quebre o layout */
+}
+
+/* Grupo dos botões */
+.button-group {
+  display: flex;
+  justify-content: space-between; /* Coloca um em cada canto */
+  gap: 1rem; /* Espaço entre eles */
+  margin-top: 1.5rem;
+}
+
+/* Estilo genérico de botão */
+button {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #007bff; /* Azul primário */
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #0056b3; /* Azul mais escuro ao passar o mouse */
+}
+
+.btn-secondary {
+  background-color: #6c757d; /* Cinza do botão "Sair" */
+  color: white;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Estilo para a mensagem de erro (começa escondida) */
+.error-message {
+  color: #dc3545; /* Vermelho */
+  font-weight: 600;
+  margin-top: 1rem;
+  display: none; /* Começa escondida */
+}
+
+
+/* style.css (continuação) */
+
+/* --- ESTILOS DO DASHBOARD --- */
+
+.app-container {
+  display: flex;
+  flex-direction: column; /* Organiza em Header, Main */
+  height: 100vh;
+}
+
+/* === HEADER === */
+.app-header {
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 0 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-content h1 {
+  color: #0056b3;
+  font-size: 1.5rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info span {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+#logout-button {
+  width: auto; /* Botão de logout não ocupa 100% */
+  padding: 0.5rem 1rem;
+  background-color: #dc3545; /* Vermelho */
+}
+#logout-button:hover {
+  background-color: #c82333;
+}
+
+/* === MAIN (Sidebar + Conteúdo) === */
+.app-main {
+  display: flex;
+  flex: 1; /* Ocupa o resto da altura */
+  overflow: hidden; /* Evita barras de rolagem desnecessárias */
+  background-color: #f0f2f5; /* Fundo cinza do conteúdo */
+}
+
+/* === SIDEBAR === */
+.app-sidebar {
+  width: 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #ddd;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow-y: auto; /* Barra de rolagem se tiver muitos botões */
+}
+
+.sidebar-nav h3 {
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0;
+}
+.sidebar-nav .nav-divider {
+  margin-top: 2rem;
+}
+
+.nav-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+.nav-button:hover {
+  background-color: #e9ecef;
+}
+
+/* === CONTENT (Conteúdo Principal) === */
+.app-content {
+  flex: 1; /* Ocupa o resto da largura */
+  padding: 2rem;
+  overflow-y: auto; /* Barra de rolagem se a tabela for grande */
+}
+
+.app-content h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#search-input {
+  flex: 1; /* Ocupa o máximo de espaço */
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#btn-atualizar {
+  width: auto;
+  padding: 0 1.5rem;
+}
+
+/* === Tabela de Dados === */
+.data-table {
+  width: 100%;
+  border-collapse: collapse; /* Tira espaço entre células */
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.data-table thead {
+  background-color: #f8f9fa;
+}
+
+.data-table th {
+  font-weight: 600;
+  color: #333;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa; /* Linhas zebradas */
+}
+
+.data-table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Botões de Ação na Tabela */
+.btn-edit, .btn-delete {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-edit {
+  background-color: #ffc107; /* Amarelo */
+  border: none;
+}
+.btn-delete {
+  background-color: #dc3545; /* Vermelho */
+  color: white;
+  border: none;
+}
+
+.content-footer {
+  margin-top: 1.5rem;
+  text-align: right;
+}
+
+/* style.css (continuação) */
+
+/* --- ESTILOS DO MODAL (POP-UP) --- */
+
+.modal-overlay {
+  /* O fundo escurecido */
+  position: fixed; /* Fica por cima de tudo */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* Preto com 60% de opacidade */
+
+  /* Centraliza o conteúdo (a caixa branca) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000; /* Garante que fique na frente */
+
+  /* Transição suave */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modal-content {
+  /* A caixa branca */
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px; /* Largura da caixa */
+
+  /* Animação de "surgir" */
+  transform: scale(1);
+  transition: transform 0.2s ease;
+}
+
+/* --- ESTADO ESCONDIDO --- */
+
+.modal-overlay.hidden {
+  /* Esconde o modal */
+  opacity: 0;
+  visibility: hidden;
+}
+
+.modal-overlay.hidden .modal-content {
+  /* Faz o modal "encolher" ao sumir */
+  transform: scale(0.95);
+}
+
+/* --- Estilos internos do Modal --- */
+
+#modal-title {
+  margin-top: 0;
+  color: #0056b3;
+  text-align: center;
+}
+
+/* Reusa os estilos que já temos */
+.modal-content .input-group {
+  margin-bottom: 1rem;
+}
+.modal-content .button-group {
+  margin-top: 1.5rem;
+}
+
+/* Mensagem de erro específica do modal */
+#modal-error-message {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  text-align: center;
+}

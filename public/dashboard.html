@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farma Sync - Dashboard</title>
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    .filters-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      align-items: flex-end;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #555;
+    }
+    .filter-group input, .filter-group select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Ajuste para colocar quantidade e unidade lado a lado no modal */
+    .row-group {
+      display: flex;
+      gap: 10px;
+    }
+    .row-group .input-group {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Farma Sync</h1>
+        <div class="user-info">
+          <span>Olá, <strong id="user-name">Usuário</strong></span>
+          <button id="logout-button" class="btn-secondary">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="app-sidebar">
+        <nav class="sidebar-nav">
+          
+          <h3>Estoque</h3>
+          <button class="nav-button" id="btn-ver-estoque">Ver Estoque</button>
+
+          <h3 class="nav-divider" id="admin-header">Gerenciamento</h3>
+          <button class="nav-button" id="btn-cadastrar-prof">Cadastrar Profissional</button>
+          <button class="nav-button" id="btn-ver-prof">Ver Profissionais</button>
+          
+          <h3 class="nav-divider" id="clinico-header">Clínico</h3>
+          <button class="nav-button" id="btn-ver-pacientes">Ver Pacientes</button>
+          
+          <h3 class="nav-divider">Conta</h3>
+          <button class="nav-button" id="btn-trocar-senha">Trocar Minha Senha</button>
+        </nav>
+      </aside>
+
+      <section class="app-content" id="main-content">
+        </section>
+    </main> 
+  </div> 
+
+  <div id="medicamento-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <form id="medicamento-form">
+        <h3 id="modal-title">Adicionar Medicamento</h3>
+        <input type="hidden" id="medicamento-id">
+        
+        <div class="input-group">
+          <label for="medicamento-nome">Nome:</label>
+          <input type="text" id="medicamento-nome" required>
+        </div>
+
+        <div class="row-group">
+          <div class="input-group">
+            <label for="medicamento-qtd">Quantidade:</label>
+            <input type="number" id="medicamento-qtd" required>
+          </div>
+          <div class="input-group">
+            <label for="medicamento-formato">Unidade:</label>
+            <select id="medicamento-formato">
+              <option value="Comprimidos">Comprimidos</option>
+              <option value="Cartelas">Cartelas</option>
+              <option value="Frascos">Frascos</option>
+              <option value="Caixas">Caixas</option>
+              <option value="Ampolas">Ampolas</option>
+              <option value="Unidades">Unidades</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="medicamento-lote">Lote:</label>
+          <input type="text" id="medicamento-lote" placeholder="Ex: L-2025">
+        </div>
+
+        <div class="input-group">
+          <label for="medicamento-tipo">Tipo:</label>
+          <select id="medicamento-tipo">
+            <option value="Geral">Geral</option>
+            <option value="Antibiótico">Antibiótico</option>
+            <option value="Corticóide">Corticóide</option>
+            <option value="Analgésico">Analgésico</option>
+            <option value="Anti-inflamatório">Anti-inflamatório</option>
+            <option value="Expectorante">Expectorante</option>
+            <option value="Controlado">Controlado</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="medicamento-validade">Validade (AAAA-MM-DD):</label>
+          <input type="date" id="medicamento-validade" required>
+        </div>
+
+        <div class="input-group">
+          <label for="medicamento-vencido">Vencido?</label>
+          <select id="medicamento-vencido">
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+          </select>
+        </div>
+
+        <p id="modal-error-message" class="error-message"></p>
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-cancelar-modal" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="senha-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <form id="senha-form">
+        <h3 id="modal-title-senha">Trocar Minha Senha</h3>
+        <div class="input-group">
+          <label for="senha-antiga">Senha Antiga:</label>
+          <input type="password" id="senha-antiga" required>
+        </div>
+        <div class="input-group">
+          <label for="senha-nova">Nova Senha:</label>
+          <input type="password" id="senha-nova" required>
+        </div>
+        <p id="senha-error-message" class="error-message"></p>
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-cancelar-senha" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="profissional-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <form id="profissional-form">
+        <h3 id="modal-title-profissional">Cadastrar Profissional</h3>
+        <div class="input-group">
+          <label for="prof-nome">Nome Completo:</label>
+          <input type="text" id="prof-nome" required>
+        </div>
+        <div class="input-group">
+          <label for="prof-crm">Login (CRM/Coren):</label>
+          <input type="text" id="prof-crm" required>
+        </div>
+        <div class="input-group">
+          <label for="prof-senha">Senha:</label>
+          <input type="password" id="prof-senha" required>
+        </div>
+        <div class="input-group">
+          <label for="prof-tipo">Tipo de Conta:</label>
+          <select id="prof-tipo">
+            <option value="farmaceutico">Farmacêutico</option>
+            <option value="admin">Administrador</option>
+            <option value="medico">Médico</option>
+          </select>
+        </div>
+        <p id="prof-error-message" class="error-message"></p>
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-cancelar-prof" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="prof-list-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Profissionais Cadastrados</h3>
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd;">
+        <table class="data-table">
+          <thead> <tr> <th>ID</th> <th>Nome</th> <th>CRM/Coren</th> <th>Tipo</th> <th>Ação</th> </tr> </thead>
+          <tbody id="prof-list-table-body"></tbody>
+        </table>
+      </div>
+      <div class="button-group" style="justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" id="btn-fechar-prof-list" class="btn-secondary">Fechar</button>
+      </div>
+    </div>
+  </div> 
+
+  <div id="paciente-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <form id="paciente-form">
+        <h3 id="paciente-modal-title">Cadastrar Paciente</h3>
+        <input type="hidden" id="paciente-id">
+        <div class="input-group">
+          <label for="paciente-nome">Nome Completo:</label>
+          <input type="text" id="paciente-nome" required>
+        </div>
+        <div class="input-group">
+          <label for="paciente-cpf">CPF (Opcional):</label>
+          <input type="text" id="paciente-cpf">
+        </div>
+        <div class="input-group">
+          <label for="paciente-nascimento">Data de Nascimento (Opcional):</label>
+          <input type="date" id="paciente-nascimento">
+        </div>
+        <p id="paciente-error-message" class="error-message"></p>
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-cancelar-paciente" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="prescricao-modal" class="modal-overlay hidden">
+    <div class="modal-content modal-lg"> 
+      <form id="prescricao-form">
+        
+        <h3 id="prescricao-modal-title">Nova Prescrição para...</h3>
+        <input type="hidden" id="prescricao-paciente-id">
+        
+        <fieldset class="form-fieldset">
+          <legend>Adicionar Medicamento</legend>
+          <div class="prescricao-adder">
+            <div class="input-group search-group">
+              <label for="prescricao-search">Buscar Medicamento (Estoque):</label>
+              <input type="text" id="prescricao-search" autocomplete="off">
+              <div id="prescricao-search-results" class="search-results hidden">
+                </div>
+            </div>
+            
+            <div class="input-group dosagem-group">
+              <label for="prescricao-dosagem">Dosagem / Posologia:</label>
+              <input type="text" id="prescricao-dosagem" placeholder="Ex: 1 comp, 8/8h, 7 dias">
+            </div>
+            
+            <button type="button" id="btn-add-item-prescricao" class="btn-primary">Adicionar Item +</button>
+          </div>
+        </fieldset>
+        
+        <fieldset class="form-fieldset">
+          <legend>Itens da Prescrição</legend>
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Medicamento</th>
+                  <th>Dosagem</th>
+                  <th>Remover</th>
+                </tr>
+              </thead>
+              <tbody id="prescricao-itens-body">
+                </tbody>
+            </table>
+          </div>
+        </fieldset>
+        
+        <p id="prescricao-error-message" class="error-message"></p>
+        
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Salvar Prescrição</button>
+          <button type="button" id="btn-cancelar-prescricao" class="btn-secondary">Cancelar</button>
+        </div>
+        
+      </form>
+    </div>
+  </div> 
+  
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

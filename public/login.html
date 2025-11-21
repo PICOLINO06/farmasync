@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farma Sync - Login</title>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="login-page">
+    
+    <div class="form-container">
+      <h2>Bem-vindo ao Farma Sync</h2>
+      <p class="subtitle">Acesso ao Sistema</p>
+
+      <form id="login-form">
+        
+        <div class="input-group">
+          <label for="crm_coren">Login (CRM/Coren):</label>
+          <input type="text" id="crm_coren" name="crm_coren" required>
+        </div>
+
+        <div class="input-group">
+          <label for="senha">Senha:</label>
+          <input type="password" id="senha" name="senha" required>
+        </div>
+
+        <p id="error-message" class="error-message"></p>
+
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Entrar</button>
+          <button type="button" class="btn-secondary">Sair</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  </body><script src="login.js" defer></script> </body>
+</html>
