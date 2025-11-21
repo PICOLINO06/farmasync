@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path'); // <-- NOVO: Para servir arquivos
 const multer = require('multer');
-const csv = require('csv-parse');
+const csv = require('csv-parser');
 const fs = require('fs');
 
 // <-- MUDANÇA: Usa variáveis de ambiente para produção
@@ -97,11 +97,15 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
 
     // === CORREÇÃO CRÍTICA: REMOVER BOM E ESPAÇOS INVISÍVEIS ===
     // Remove o caractere BOM (Byte Order Mark) que o Excel/Windows coloca no início
-    let cleanData = data.replace(/^\uFEFF/, ''); 
+    const cleanData = fileData.replace(/^\uFEFF/, ''); 
     
     // Detecta separador (; ou ,)
     const firstLine = cleanData.split('\n')[0];
-    const separator = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+    const countSemi = (firstLine.match(/;/g) || []).length;
+    const countComma = (firstLine.match(/,/g) || []).length;
+    const separator = countSemi > countComma ? ';' : ',';
+
+    console.log(`CSV Upload: Separador detectado [ ${separator} ]`);
 
     // Transforma o texto limpo em Stream para o csv-parser
     const { Readable } = require('stream'); // Importação interna rápida
@@ -110,9 +114,17 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
     const results = [];
 
     stream
-      .pipe(csv({ separator: separator, mapHeaders: ({ header }) => header.trim().toLowerCase() })) // Força headers minúsculos e sem espaços
+      .pipe(csv({
+        separator: separator,
+        mapHeaders: ({ header }) => header.trim().toLowerCase() // Força headers minúsculos
+      }))
       .on('data', (row) => results.push(row))
       .on('end', async () => {
+        
+        console.log(`CSV Lido: ${results.length} linhas encontradas.`);
+        if(results.length > 0) {
+            console.log("Exemplo da primeira linha lida:", results[0]);
+        }
         const client = await db.connect();
         try {
           await client.query('BEGIN');
@@ -128,34 +140,35 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
             // Validação forçada: converte quantidade para numero para garantir
             const qtd = parseInt(row.quantidade);
             
-            if(row.nome && !isNaN(qtd)) {
-              const vencido = row.vencido || 'Não'; 
+            if (row.nome && !isNaN(qtd)) {
               await client.query(sql, [
-                row.nome, 
-                qtd, 
-                row.validade, 
-                row.lote || '', 
-                row.tipo || 'Geral', 
-                row.formato || 'Unidades', 
-                vencido
+                row.nome,
+                qtd,
+                row.validade, // Espera formato AAAA-MM-DD
+                row.lote || '',
+                row.tipo || 'Geral',
+                row.formato || 'Unidade',
+                row.vencido || 'Não'
               ]);
               inseridosCount++;
             } else {
-              // Log para você ver no terminal do Render se algo falhar
-              console.log("Linha ignorada (dados inválidos):", row);
+              console.log("Linha ignorada (dados inválidos ou cabeçalho errado):", row);
             }
           }
 
           await client.query('COMMIT');
-          fs.unlinkSync(filePath); // Limpa arquivo temporário
           
-          res.json({ message: `Sucesso! ${inseridosCount} medicamentos inseridos.` });
+          // Remove o arquivo temporário
+          try { fs.unlinkSync(filePath); } catch(e) {}
+
+          res.json({ 
+            message: `Processamento concluído! ${inseridosCount} medicamentos inseridos.` 
+          });
 
         } catch (dbErr) {
           await client.query('ROLLBACK');
-          fs.unlinkSync(filePath);
-          console.error("Erro no banco:", dbErr);
-          res.status(500).json({ error: 'Erro ao salvar no banco de dados.' });
+          console.error("Erro de Banco:", dbErr);
+          res.status(500).json({ error: 'Erro ao salvar dados no banco.' });
         } finally {
           client.release();
         }
@@ -464,4 +477,5 @@ app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 
 });
+
 
