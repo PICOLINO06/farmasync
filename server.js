@@ -86,69 +86,81 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
     return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
   }
 
-  const results = [];
   const filePath = req.file.path;
-  let inseridosCount = 0;
+  let inseridosCount = 0; 
 
-  // Tenta ler o arquivo como texto primeiro para detectar o separador
-  const fileContent = fs.readFileSync(filePath, 'utf8');
-  // Se tiver mais ponto-e-vírgula que vírgula na primeira linha, usa ponto-e-vírgula
-  const firstLine = fileContent.split('\n')[0];
-  const separator = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
-  
-  console.log(`Processando CSV com separador detectado: "${separator}"`);
+  // LER O ARQUIVO COMO TEXTO PRIMEIRO
+  fs.readFile(filePath, 'utf8', async (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Erro ao ler arquivo físico." });
+    }
 
-  fs.createReadStream(filePath)
-    .pipe(csv({ separator: separator })) // Usa o separador detectado
-    .on('data', (data) => results.push(data))
-    .on('end', async () => {
-      // Processar cada linha do CSV e inserir no banco
-      const client = await db.connect();
-      try {
-        await client.query('BEGIN');
-        
-        const sql = `
-          INSERT INTO medicamentos (nome, quantidade, validade, lote, tipo, formato, vencido)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `;
+    // === CORREÇÃO CRÍTICA: REMOVER BOM E ESPAÇOS INVISÍVEIS ===
+    // Remove o caractere BOM (Byte Order Mark) que o Excel/Windows coloca no início
+    let cleanData = data.replace(/^\uFEFF/, ''); 
+    
+    // Detecta separador (; ou ,)
+    const firstLine = cleanData.split('\n')[0];
+    const separator = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
 
-        for (const row of results) {
-          // Validação básica: verifica se tem nome e quantidade
-          const cleanRow = {};
-          Object.keys(row).forEach(key => {
-            cleanRow[key.trim().toLowerCase()] = row[key];
-          });
-          if(cleanRow.nome && cleanRow.quantidade) {
-            const vencido = cleanRow.vencido || 'Não'; 
-            await client.query(sql, [
-              cleanRow.nome, 
-              cleanRow.quantidade, 
-              cleanRow.validade, 
-              cleanRow.lote, 
-              cleanRow.tipo, 
-              cleanRow.formato, 
-              vencido
-            ]);
-            inseridosCount++; // Conta apenas se inseriu de verdade
-          } else {
-            console.log("Linha ignorada (dados incompletos):", cleanRow);
+    // Transforma o texto limpo em Stream para o csv-parser
+    const { Readable } = require('stream'); // Importação interna rápida
+    const stream = Readable.from(cleanData);
+
+    const results = [];
+
+    stream
+      .pipe(csv({ separator: separator, mapHeaders: ({ header }) => header.trim().toLowerCase() })) // Força headers minúsculos e sem espaços
+      .on('data', (row) => results.push(row))
+      .on('end', async () => {
+        const client = await db.connect();
+        try {
+          await client.query('BEGIN');
+          
+          const sql = `
+            INSERT INTO medicamentos (nome, quantidade, validade, lote, tipo, formato, vencido)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `;
+
+          for (const row of results) {
+            // Como normalizamos os headers no .pipe, agora podemos confiar em 'nome', 'quantidade', etc.
+            
+            // Validação forçada: converte quantidade para numero para garantir
+            const qtd = parseInt(row.quantidade);
+            
+            if(row.nome && !isNaN(qtd)) {
+              const vencido = row.vencido || 'Não'; 
+              await client.query(sql, [
+                row.nome, 
+                qtd, 
+                row.validade, 
+                row.lote || '', 
+                row.tipo || 'Geral', 
+                row.formato || 'Unidades', 
+                vencido
+              ]);
+              inseridosCount++;
+            } else {
+              // Log para você ver no terminal do Render se algo falhar
+              console.log("Linha ignorada (dados inválidos):", row);
+            }
           }
+
+          await client.query('COMMIT');
+          fs.unlinkSync(filePath); // Limpa arquivo temporário
+          
+          res.json({ message: `Sucesso! ${inseridosCount} medicamentos inseridos.` });
+
+        } catch (dbErr) {
+          await client.query('ROLLBACK');
+          fs.unlinkSync(filePath);
+          console.error("Erro no banco:", dbErr);
+          res.status(500).json({ error: 'Erro ao salvar no banco de dados.' });
+        } finally {
+          client.release();
         }
-
-        await client.query('COMMIT');
-        // Remove o arquivo temporário
-        fs.unlinkSync(filePath);
-        res.json({ message: `${results.length} medicamentos processados com sucesso!` });
-
-      } catch (err) {
-        await client.query('ROLLBACK');
-        fs.unlinkSync(filePath); // Remove arquivo mesmo com erro
-        console.error("Erro na importação CSV:", err);
-        res.status(500).json({ error: 'Erro ao processar CSV.' });
-      } finally {
-        client.release();
-      }
-    });
+      });
+  });
 });
 
 // =============================
@@ -452,3 +464,4 @@ app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 
 });
+
