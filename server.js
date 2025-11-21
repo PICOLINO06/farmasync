@@ -88,9 +88,18 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
 
   const results = [];
   const filePath = req.file.path;
+  let inseridosCount = 0;
+
+  // Tenta ler o arquivo como texto primeiro para detectar o separador
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  // Se tiver mais ponto-e-vírgula que vírgula na primeira linha, usa ponto-e-vírgula
+  const firstLine = fileContent.split('\n')[0];
+  const separator = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+  
+  console.log(`Processando CSV com separador detectado: "${separator}"`);
 
   fs.createReadStream(filePath)
-    .pipe(csv())
+    .pipe(csv({ separator: separator })) // Usa o separador detectado
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       // Processar cada linha do CSV e inserir no banco
@@ -105,18 +114,24 @@ app.post('/api/upload-csv', verificaToken, checkStockManager, upload.single('fil
 
         for (const row of results) {
           // Validação básica: verifica se tem nome e quantidade
-          if(row.nome && row.quantidade) {
-            // Define 'Não' se não vier preenchido
-            const vencido = row.vencido || 'Não'; 
+          const cleanRow = {};
+          Object.keys(row).forEach(key => {
+            cleanRow[key.trim().toLowerCase()] = row[key];
+          });
+          if(cleanRow.nome && cleanRow.quantidade) {
+            const vencido = cleanRow.vencido || 'Não'; 
             await client.query(sql, [
-              row.nome, 
-              row.quantidade, 
-              row.validade, 
-              row.lote, 
-              row.tipo, 
-              row.formato, 
+              cleanRow.nome, 
+              cleanRow.quantidade, 
+              cleanRow.validade, 
+              cleanRow.lote, 
+              cleanRow.tipo, 
+              cleanRow.formato, 
               vencido
             ]);
+            inseridosCount++; // Conta apenas se inseriu de verdade
+          } else {
+            console.log("Linha ignorada (dados incompletos):", cleanRow);
           }
         }
 
@@ -435,4 +450,5 @@ app.post('/api/prescricoes', verificaToken, checkClinicStaff, async (req, res) =
 // --- ROTA DE PARTIDA ---
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
+
 });
